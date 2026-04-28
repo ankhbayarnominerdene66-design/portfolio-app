@@ -1,0 +1,40 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Public контентууд: хэн ч унших боломжтой
+    // Зөвхөн admin (authenticated user) л write хийх боломжтой
+    match /home/{document=**} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+
+    match /about/{document=**} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+
+    match /contact/{document=**} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+
+    match /projects/{document=**} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+
+    match /skills/{document=**} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+
+    // Messages: хэн ч контакт форм илгээх боломжтой
+    // Зөвхөн admin унших, ангалах, устгах боломжтой
+    match /messages/{document=**} {
+      allow create: if true;
+      allow read, update, delete: if request.auth != null;
+    }
+  }
+}
