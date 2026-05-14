@@ -4,14 +4,17 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
-import { ExternalLink, Github } from 'lucide-react';
+import { ExternalLink, Github, Eye, X } from 'lucide-react';
 import { useCollection } from '@/hooks/useFirestore';
 import { CardSkeleton } from '@/components/ui/Loading';
 import Card from '@/components/ui/Card';
+import Button from '@/components/ui/Button';
+import Modal from '@/components/ui/Modal';
 
 export default function ProjectsPage() {
   const { data: projects, loading, error } = useCollection('projects');
   const [filter, setFilter] = useState('all');
+  const [selectedProject, setSelectedProject] = useState(null);
 
   // Get unique categories
   const categories = ['all', ...new Set(projects.map((p) => p.category).filter(Boolean))];
@@ -120,7 +123,16 @@ export default function ProjectsPage() {
                     </div>
                   )}
 
-                  <div className="flex items-center gap-2 pt-4 border-t border-gray-100 dark:border-gray-800">
+                  {/* Дэлгэрэнгүй үзэх товч */}
+                  <button
+                    onClick={() => setSelectedProject(project)}
+                    className="w-full mb-3 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-primary-500 to-accent-500 text-white text-sm font-medium hover:shadow-lg hover:scale-[1.02] transition-all"
+                  >
+                    <Eye className="w-4 h-4" />
+                    Дэлгэрэнгүй үзэх
+                  </button>
+
+                  <div className="flex items-center gap-2 pt-3 border-t border-gray-100 dark:border-gray-800">
                     {project.liveUrl && (
                       <a
                         href={project.liveUrl}
@@ -150,6 +162,116 @@ export default function ProjectsPage() {
           ))}
         </div>
       )}
+
+      {/* Project Detail Modal */}
+      <Modal
+        isOpen={!!selectedProject}
+        onClose={() => setSelectedProject(null)}
+        title={selectedProject?.title || ''}
+        maxWidth="max-w-3xl"
+      >
+        {selectedProject && (
+          <div className="space-y-6">
+            {/* Image */}
+            {selectedProject.image && (
+              <div className="relative w-full h-64 sm:h-80 rounded-xl overflow-hidden">
+                <Image
+                  src={selectedProject.image}
+                  alt={selectedProject.title}
+                  fill
+                  className="object-cover"
+                />
+                {selectedProject.category && (
+                  <span className="absolute top-3 left-3 text-xs px-3 py-1.5 rounded-full bg-white/90 dark:bg-gray-900/90 backdrop-blur text-primary-600 dark:text-primary-400 font-medium">
+                    {selectedProject.category}
+                  </span>
+                )}
+              </div>
+            )}
+
+            {/* Short description */}
+            <div>
+              <h3 className="font-display text-lg font-semibold mb-2 text-gray-900 dark:text-white">
+                Товч танилцуулга
+              </h3>
+              <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
+                {selectedProject.description}
+              </p>
+            </div>
+
+            {/* Detailed description */}
+            {selectedProject.detailedDescription ? (
+              <div>
+                <h3 className="font-display text-lg font-semibold mb-2 text-gray-900 dark:text-white">
+                  Дэлгэрэнгүй
+                </h3>
+                <div className="text-gray-600 dark:text-gray-400 leading-relaxed whitespace-pre-wrap">
+                  {selectedProject.detailedDescription}
+                </div>
+              </div>
+            ) : (
+              <div className="p-4 rounded-xl bg-gray-50 dark:bg-gray-800/50 text-center text-sm text-gray-500 dark:text-gray-400">
+                Дэлгэрэнгүй тайлбар хараахан нэмэгдээгүй байна.
+              </div>
+            )}
+
+            {/* Technologies */}
+            {selectedProject.technologies && selectedProject.technologies.length > 0 && (
+              <div>
+                <h3 className="font-display text-lg font-semibold mb-3 text-gray-900 dark:text-white">
+                  Ашигласан технологи
+                </h3>
+                <div className="flex flex-wrap gap-2">
+                  {selectedProject.technologies.map((tech) => (
+                    <span
+                      key={tech}
+                      className="text-sm px-3 py-1.5 rounded-full bg-primary-50 dark:bg-primary-950 text-primary-700 dark:text-primary-300 font-medium"
+                    >
+                      {tech}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Action buttons */}
+            <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-gray-100 dark:border-gray-800">
+              {selectedProject.liveUrl && (
+                <a
+                  href={selectedProject.liveUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-gradient-to-r from-primary-500 to-accent-500 text-white font-medium hover:shadow-lg transition-all"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                  Live demo үзэх
+                </a>
+              )}
+              {selectedProject.githubUrl && (
+                <a
+                  href={selectedProject.githubUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-all"
+                >
+                  <Github className="w-4 h-4" />
+                  Source code
+                </a>
+              )}
+              {!selectedProject.liveUrl && !selectedProject.githubUrl && (
+                <Button
+                  variant="secondary"
+                  onClick={() => setSelectedProject(null)}
+                  className="w-full"
+                >
+                  <X className="w-4 h-4" />
+                  Хаах
+                </Button>
+              )}
+            </div>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 }

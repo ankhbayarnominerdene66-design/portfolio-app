@@ -4,7 +4,7 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
-import { Plus, Edit2, Trash2, ExternalLink, Github } from 'lucide-react';
+import { Plus, Edit2, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useCollection } from '@/hooks/useFirestore';
 import { addDocument, updateDocument, deleteDocument } from '@/lib/firestore';
@@ -18,6 +18,7 @@ import { CardSkeleton } from '@/components/ui/Loading';
 const emptyProject = {
   title: '',
   description: '',
+  detailedDescription: '',
   image: '',
   category: '',
   technologies: '',
@@ -45,6 +46,7 @@ export default function AdminProjectsPage() {
     setForm({
       title: project.title || '',
       description: project.description || '',
+      detailedDescription: project.detailedDescription || '',
       image: project.image || '',
       category: project.category || '',
       technologies: (project.technologies || []).join(', '),
@@ -163,6 +165,11 @@ export default function AdminProjectsPage() {
                 <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 mb-3">
                   {project.description}
                 </p>
+                {project.detailedDescription && (
+                  <p className="text-xs text-green-600 dark:text-green-400 mb-3">
+                    ✓ Дэлгэрэнгүй тайлбартай
+                  </p>
+                )}
                 {project.technologies?.length > 0 && (
                   <div className="flex flex-wrap gap-1.5 mb-4">
                     {project.technologies.slice(0, 4).map((tech) => (
@@ -223,14 +230,36 @@ export default function AdminProjectsPage() {
           />
 
           <Textarea
-            label="Тайлбар *"
+            label="Богино тайлбар *"
             name="description"
-            rows={4}
+            rows={3}
             value={form.description}
             onChange={handleChange}
             error={errors.description}
-            placeholder="Төслийн тухай товч тайлбар..."
+            placeholder="Картан дээр харагдах товч тайлбар (1-2 өгүүлбэр)..."
           />
+
+          <div>
+            <Textarea
+              label="Дэлгэрэнгүй тайлбар"
+              name="detailedDescription"
+              rows={8}
+              value={form.detailedDescription}
+              onChange={handleChange}
+              placeholder="Төслийн зорилго, гүйцэтгэсэн ажлууд, тулгарсан бэрхшээл, шийдвэрлэсэн арга, хэрэглэгчийн ашиг тус гэх мэт дэлгэрэнгүй мэдээллийг энд бичнэ үү...
+
+Жишээ нь:
+• Зорилго: ...
+• Үндсэн функцууд: ...
+• Ашигласан технологи: ...
+• Хийсэн ажил: ...
+• Тулгарсан бэрхшээл: ..."
+            />
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              Энэ хэсэг нь &ldquo;Дэлгэрэнгүй үзэх&rdquo; товч дарахад нээгдэх modal дотор харагдана.
+              Олон мөр бичиж болно — мөр таслахад автоматаар хадгалагдана.
+            </p>
+          </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Input
